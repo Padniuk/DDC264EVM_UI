@@ -157,6 +157,8 @@ class FPGAControl:
         self.set_reg_in(0xEB, self.CLKDELAY_AROUND_CONV)
 
     def get_data(self, folder_path, file_index):
+        filename = f"{folder_path}/file_{file_index+1}.txt"
+
         hDLL = ctypes.WinDLL("USB_IO_for_VB6.dll")
         WriteFPGARegsC = self.WriteFPGARegsC_type(("WriteFPGARegsC", hDLL))
         FastAllDataCap = self.FastAllDataCap_type(("FastAllDataCap", hDLL))
@@ -167,13 +169,15 @@ class FPGAControl:
         USBdev = self.int16_t(0)
         DUTSelect = self.int32_t(0)
 
-        _ = WriteFPGARegsC(
+        res_write = WriteFPGARegsC(
             ctypes.byref(USBdev),
             ctypes.byref(DUTSelect),
             self.RegsIn,
             self.RegsOut,
             self.RegsEnable,
         )
+        if res_write:
+            return f"Can't write registers to FPGA in file {filename}"
 
         Channels = 256
         ArrSize = 2 * Channels
@@ -197,7 +201,7 @@ class FPGAControl:
         for j in range(Samples * Channels):
             AllData[j] = 0.0
 
-        _ = FastAllDataCap(
+        res_data_capture = FastAllDataCap(
             AVGArr,
             RMSArr,
             P2PArr,
@@ -210,7 +214,9 @@ class FPGAControl:
             ctypes.byref(AllDataAorBfirst),
         )
 
-        filename = f"{folder_path}/file_{file_index+1}.txt"
+        if res_data_capture:
+            return f"Can't capture data from FPG in file {filename}"
+
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
         with open(filename, "w") as dataFile:
@@ -218,6 +224,8 @@ class FPGAControl:
                 for c in range(Channels):
                     dataFile.write(f"{self.convert_adc(AllData[s * Channels + c])}  ")
                 dataFile.write("\n")
+
+        return f"File {filename} was saved successfully"
 
     def convert_adc(self, value):
         power = next(k for k, v in self.bit_rates.items() if v == self.DDCbit8)

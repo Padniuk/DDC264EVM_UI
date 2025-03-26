@@ -16,8 +16,8 @@ class Ui(QMainWindow):
 
         self.setWindowTitle("DDC264EVM_UI")
 
-        self.ConvLowInt.setText("1600")
-        self.ConvHighInt.setText("1600")
+        self.ConvLowInt.setText("320")
+        self.ConvHighInt.setText("320")
 
         self.ConvConfig.addItem("Free run")
         self.ConvConfig.addItem("Low")
@@ -83,42 +83,62 @@ class Ui(QMainWindow):
         self.show()
 
     def update_registers(self):
-        self.fpga = FPGAControl(
-            int(self.ConvLowInt.text()),
-            int(self.ConvHighInt.text()),
-            self.conv_config[self.ConvConfig.currentText()],
-            int(self.CLKHigh.text()),
-            int(self.CLKLow.text()),
-            self.ddc_clk_config[self.DDCCLKConfig.currentText()],
-            int(self.ChannelCount.currentText()),
-            int(self.nDVALIDIgnore.text()),
-            int(self.nDVALIDRead.text()),
-            int(self.DCLKHigh.text()),
-            int(self.DCLKLow.text()),
-            self.dclk_config[self.DCLKConfig.currentText()],
-            int(self.DCLKWait.text()),
-            self.ADCrange.currentText(),
-            int(self.Format.currentText()[:-4]),
-        )
+        try:
+            if (
+                5 * int(self.ConvLowInt.text()) < 1600
+                or 5 * int(self.ConvHighInt.text()) < 1600
+            ):
+                raise ValueError
+
+            self.fpga = FPGAControl(
+                5 * int(self.ConvLowInt.text()),
+                5 * int(self.ConvHighInt.text()),
+                self.conv_config[self.ConvConfig.currentText()],
+                int(self.CLKHigh.text()),
+                int(self.CLKLow.text()),
+                self.ddc_clk_config[self.DDCCLKConfig.currentText()],
+                int(self.ChannelCount.currentText()),
+                int(self.nDVALIDIgnore.text()),
+                int(self.nDVALIDRead.text()),
+                int(self.DCLKHigh.text()),
+                int(self.DCLKLow.text()),
+                self.dclk_config[self.DCLKConfig.currentText()],
+                int(self.DCLKWait.text()),
+                self.ADCrange.currentText(),
+                int(self.Format.currentText()[:-4]),
+            )
+        except ValueError:
+            self.statusBar().showMessage("Invalid input")
 
     def update_time(self):
-        if self.ConvHighInt.text():
-            self.conv_high_int_text.setText(f"{int(self.ConvHighInt.text())*0.2} us")
-        if self.ConvLowInt.text():
-            self.conv_low_int_text.setText(f"{int(self.ConvLowInt.text())*0.2} us")
+        try:
+            if self.ConvHighInt.text():
+                self.conv_high_int_text.setText(
+                    f"us = {int(self.ConvHighInt.text())*5}"
+                )
+            if self.ConvLowInt.text():
+                self.conv_low_int_text.setText(f"us = {int(self.ConvLowInt.text())*5}")
+        except ValueError:
+            self.statusBar().showMessage("Invalid input")
 
     def record_data(self):
-        options = QFileDialog.Options()
-        folder_path = QFileDialog.getExistingDirectory(
-            self, "Select Folder", options=options
-        )
-
         self.update_registers()
-        numFiles = int(self.nFiles.text())
-        self.progressBar.setMaximum(numFiles)
-        self.progressBar.show()
-        for i in range(numFiles):
-            self.fpga.get_data(folder_path, i)
-            self.progressBar.setValue(i + 1)
-        self.progressBar.hide()
-        self.statusBar().showMessage("Data read successfully")
+        if self.fpga:
+            try:
+                numFiles = int(self.nFiles.text())
+                if numFiles <= 0:
+                    raise ValueError
+                self.progressBar.setMaximum(numFiles)
+                self.progressBar.show()
+                options = QFileDialog.Options()
+                folder_path = QFileDialog.getExistingDirectory(
+                    self, "Select Folder", options=options
+                )
+                for i in range(numFiles):
+                    collection_result = self.fpga.get_data(folder_path, i)
+                    self.statusBar().showMessage(collection_result)
+                    self.progressBar.setValue(i + 1)
+                self.progressBar.hide()
+                self.statusBar().showMessage("Data read successfully")
+            except ValueError:
+                self.statusBar().showMessage("Invalid number of files")
