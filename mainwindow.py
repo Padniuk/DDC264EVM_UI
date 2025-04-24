@@ -1,6 +1,8 @@
 from PyQt5 import uic
-from PyQt5.QtWidgets import QMainWindow, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QVBoxLayout
 from tools import FPGAControl
+import pyqtgraph as pg
+import numpy as np
 
 
 class Ui(QMainWindow):
@@ -74,11 +76,27 @@ class Ui(QMainWindow):
 
         self.nFiles.setText("1")
 
+        self.traceNumber.addItem("--")
+        self.traceNumber.addItem("Mean value")
+        for letter in ["A", "B"]:
+            for i in range(256):
+                self.traceNumber.addItem(f"{i+1}{letter}")
+        self.graphWidget = pg.PlotWidget()
+        layout = QVBoxLayout(self.tracePlot)
+        layout.addWidget(self.graphWidget)
+        self.graphWidget.setLabel("left", "Charge", units="C")
+        self.graphWidget.setLabel("bottom", "Time")
+
+        self.file_data = []
+        self.filePath.setText("")
+
         self.fpga = None
 
         self.getData.clicked.connect(self.record_data)
         self.ConvLowInt.textChanged.connect(self.update_time)
         self.ConvHighInt.textChanged.connect(self.update_time)
+        self.readFileButton.clicked.connect(self.load_file)
+        self.traceNumber.currentTextChanged.connect(self.plot_trace)
 
         self.show()
 
@@ -142,3 +160,63 @@ class Ui(QMainWindow):
                 self.statusBar().showMessage("Data read successfully")
             except ValueError:
                 self.statusBar().showMessage("Invalid number of files")
+
+    def load_file(self):
+        options = QFileDialog.Options()
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select File",
+            "",
+            "Text Files (*.txt);;All Files (*)",
+            options=options,
+        )
+        if file_path:
+            try:
+                self.filePath.setText(file_path.split("/")[-1])
+                with open(file_path) as f:
+                    lines = f.readlines()
+                for line in lines[:512]:
+                    self.file_data.append([float(num) for num in line.split()])
+
+                for i, line in enumerate(lines[512:1024]):
+                    for j, num in enumerate(line.split()):
+                        self.file_data[i].append(float(num))
+            except ValueError:
+                self.statusBar().showMessage("Invalid file")
+
+    def plot_trace(self):
+        if not len(self.file_data) == 0:
+            self.graphWidget.clear()
+            trace = self.traceNumber.currentText()
+            if not (trace == "--"):
+                if trace == "Mean value":
+                    x = list(range(512))
+                    y = [
+                        1e-12 * np.mean([row[i] for row in self.file_data])
+                        for i in range(512)
+                    ]
+                    self.graphWidget.plot(
+                        x,
+                        y,
+                        pen=pg.mkPen("r", width=1),
+                        symbol="o",
+                        symbolSize=10,
+                        symbolBrush="r",
+                    )
+                else:
+                    if trace.endswith("A"):
+                        column = int(trace[:-1]) - 1
+                        x = list(range(512))
+                        y = [1e-12 * row[column] for row in self.file_data[:512]]
+                    elif trace.endswith("B"):
+                        column = int(trace[:-1]) - 1
+                        x = list(range(512))
+                        y = [1e-12 * row[column] for row in self.file_data[512:1024]]
+                    self.graphWidget.plot(
+                        x,
+                        y,
+                        pen=pg.mkPen("b", width=1),
+                        symbol="o",
+                        symbolSize=10,
+                        symbolBrush="b",
+                    )
