@@ -1,10 +1,31 @@
 from PyQt5 import uic
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QThread
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QVBoxLayout
 from tools import FPGAControl
 import pyqtgraph as pg
 import numpy as np
 
 
+class ReaderWorker(QObject):
+    finished = pyqtSignal()
+    progress = pyqtSignal(int)
+    status = pyqtSignal(str)
+
+    def __init__(self, fpga, folder_path, numFiles):
+        super().__init__()
+        self.fpga = fpga
+        self.folder_path = folder_path
+        self.numFiles = numFiles
+
+    @pyqtSlot()
+    def run(self):
+        for i in range(self.numFiles):
+            result = self.fpga.get_data(self.folder_path, i)
+            self.status.emit(result)
+            self.progress.emit(i + 1)
+        self.status.emit("Data read successfully")
+        self.finished.emit()
+        
 class Ui(QMainWindow):
     conv_config = {"Free run": 0, "Low": 2, "High": 3}
     ddc_clk_config = {"Running": 1, "Low": 0}
@@ -148,17 +169,26 @@ class Ui(QMainWindow):
                 if numFiles <= 0:
                     raise ValueError
                 self.progressBar.setMaximum(numFiles)
+                self.progressBar.setValue(0)
                 self.progressBar.show()
                 options = QFileDialog.Options()
                 folder_path = QFileDialog.getExistingDirectory(
                     self, "Select Folder", options=options
                 )
-                for i in range(numFiles):
-                    collection_result = self.fpga.get_data(folder_path, i)
-                    self.statusBar().showMessage(collection_result)
-                    self.progressBar.setValue(i + 1)
-                self.progressBar.hide()
-                self.statusBar().showMessage("Data read successfully")
+
+                self.thread = QThread()
+                self.worker = ReaderWorker(self.fpga, folder_path, numFiles)
+                self.worker.moveToThread(self.thread)
+
+                self.thread.started.connect(self.worker.run)
+                self.worker.progress.connect(self.progressBar.setValue)
+                self.worker.status.connect(self.statusBar().showMessage)
+                self.worker.finished.connect(self.thread.quit)
+                self.worker.finished.connect(self.worker.deleteLater)
+                self.thread.finished.connect(self.thread.deleteLater)
+                self.thread.finished.connect(self.progressBar.hide)    
+                self.thread.start()
+
             except ValueError:
                 self.statusBar().showMessage("Invalid number of files")
 
