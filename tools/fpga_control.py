@@ -91,7 +91,7 @@ class FPGAControl:
         self.DDCbit10 = self.adc_ranges[ADC_RANGE][0]
         self.DDCbit9 = self.adc_ranges[ADC_RANGE][1]
         self.DDCbit8 = self.bit_rates[BIT_RATE]
-        _ = self.convert_adc(0)
+
         self.DDCbit7 = 0  # SPEED
         self.DDCbit4 = 0  # SLEW
         self.DDCbit0 = 0  # TEST
@@ -181,7 +181,7 @@ class FPGAControl:
 
         Channels = 256
         ArrSize = 2 * Channels
-        Samples = 1024
+        Samples = 512
         AllDataAorBfirst = self.int32_t(0)
 
         AVGArr = (ctypes.c_double * ArrSize)()
@@ -189,7 +189,7 @@ class FPGAControl:
         P2PArr = (ctypes.c_double * ArrSize)()
         MAXArr = (ctypes.c_double * ArrSize)()
         MINArr = (ctypes.c_double * ArrSize)()
-        AllData = (ctypes.c_double * (Samples * Channels))()
+        AllData = (ctypes.c_double * (2 * Samples * Channels))()
 
         for j in range(ArrSize):
             AVGArr[j] = 0.0
@@ -198,7 +198,7 @@ class FPGAControl:
             MAXArr[j] = 0.0
             MINArr[j] = 0.0
 
-        for j in range(Samples * Channels):
+        for j in range(2 * Samples * Channels):
             AllData[j] = 0.0
 
         res_data_capture = FastAllDataCap(
@@ -209,7 +209,7 @@ class FPGAControl:
             MINArr,
             ArrSize,
             Channels,
-            Samples,
+            2 * Samples,
             AllData,
             ctypes.byref(AllDataAorBfirst),
         )
@@ -220,16 +220,20 @@ class FPGAControl:
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
         with open(filename, "w") as dataFile:
-            for s in range(Samples):
-                for c in range(Channels):
-                    dataFile.write(f"{self.convert_adc(AllData[s * Channels + c])}  ")
-                dataFile.write("\n")
+            for type_ in ["A", "B"]:
+                for c in range(Channels, 0, -1):
+                    for s in range(Samples):
+                        prefix = "0" if c < 10 else ""
+                        shift = 0 if type_ == "A" else 256
+                        dataFile.write(
+                            f"{prefix}{c}{type_}, {0}, {AllData[s*Channels+c+shift]}, {0}, {0}, {next(k for k, v in self.bit_rates.items() if v == self.DDCbit8)}\n"
+                        )
 
         return f"File {filename} was saved successfully"
 
     def convert_adc(self, value):
         power = next(k for k, v in self.bit_rates.items() if v == self.DDCbit8)
-        adc_range = float(
+        adc_range = 1e-12 * float(
             next(
                 k
                 for k, v in self.adc_ranges.items()

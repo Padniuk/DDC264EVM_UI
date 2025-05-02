@@ -86,8 +86,9 @@ class Ui(QMainWindow):
         layout.addWidget(self.graphWidget)
         self.graphWidget.setLabel("left", "Charge", units="C")
         self.graphWidget.setLabel("bottom", "Time")
+        self.graphWidget.setMouseEnabled(x=False, y=False)
 
-        self.file_data = []
+        self.file_data = {}
         self.filePath.setText("")
 
         self.fpga = None
@@ -175,12 +176,15 @@ class Ui(QMainWindow):
                 self.filePath.setText(file_path.split("/")[-1])
                 with open(file_path) as f:
                     lines = f.readlines()
-                for line in lines[:512]:
-                    self.file_data.append([float(num) for num in line.split()])
-
-                for i, line in enumerate(lines[512:1024]):
-                    for j, num in enumerate(line.split()):
-                        self.file_data[i].append(float(num))
+                    for line in lines:
+                        if line.split(",")[0] not in self.file_data:
+                            self.file_data[line.split(",")[0]] = [
+                                float(line.split(",")[2])
+                            ]
+                        else:
+                            self.file_data[line.split(",")[0]].append(
+                                float(line.split(",")[2])
+                            )
             except ValueError:
                 self.statusBar().showMessage("Invalid file")
 
@@ -189,34 +193,32 @@ class Ui(QMainWindow):
             self.graphWidget.clear()
             trace = self.traceNumber.currentText()
             if not (trace == "--"):
+                if not self.fpga:
+                    self.update_registers()
+
                 if trace == "Mean value":
                     x = list(range(512))
+                    sorted_keys = sorted(
+                        self.file_data.keys(), key=lambda x: (x[-1], int(x[:-1]))
+                    )
                     y = [
-                        1e-12 * np.mean([row[i] for row in self.file_data])
-                        for i in range(512)
+                        self.fpga.convert_adc(np.mean(self.file_data[key]))
+                        for key in sorted_keys
                     ]
-                    self.graphWidget.plot(
-                        x,
-                        y,
-                        pen=pg.mkPen("r", width=1),
-                        symbol="o",
-                        symbolSize=10,
-                        symbolBrush="r",
-                    )
+                    color = 'r'
                 else:
-                    if trace.endswith("A"):
-                        column = int(trace[:-1]) - 1
-                        x = list(range(512))
-                        y = [1e-12 * row[column] for row in self.file_data[:512]]
-                    elif trace.endswith("B"):
-                        column = int(trace[:-1]) - 1
-                        x = list(range(512))
-                        y = [1e-12 * row[column] for row in self.file_data[512:1024]]
-                    self.graphWidget.plot(
-                        x,
-                        y,
-                        pen=pg.mkPen("b", width=1),
-                        symbol="o",
-                        symbolSize=10,
-                        symbolBrush="b",
+                    prefix = "0" if int(trace[:-1]) < 10 else ""
+                    x = list(range(512))
+                    y = self.fpga.convert_adc(
+                        np.array(self.file_data[f"{prefix}{trace}"])
                     )
+                    color = 'b'
+
+                self.graphWidget.plot(
+                    x,
+                    y,
+                    pen=pg.mkPen(color, width=1),
+                    symbol="o",
+                    symbolSize=10,
+                    symbolBrush=color,
+                )
