@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>848</width>
+    <width>934</width>
     <height>684</height>
    </rect>
   </property>
@@ -14,558 +14,452 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>22</x>
-      <y>31</y>
-      <width>77</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>FPGA registers</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_2">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>67</y>
-      <width>75</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>CONV Low Int</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_3">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>102</y>
-      <width>79</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>CONV High Int</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_4">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>137</y>
-      <width>66</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Conv Config</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_5">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>172</y>
-      <width>93</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>MCLK Freq [MHz]</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_6">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>207</y>
-      <width>88</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>CLK (High) (Low)</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_7">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>242</y>
-      <width>86</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>DDC CLK Config</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_8">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>277</y>
-      <width>38</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Format</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_9">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>312</y>
-      <width>79</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Channel Count</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_10">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>347</y>
-      <width>85</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>nDVALID Ignore</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_11">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>382</y>
-      <width>77</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>nDVALID Read</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_12">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>452</y>
-      <width>67</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>DCLK Config</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_13">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>417</y>
-      <width>97</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>DCLK (High) (Low)</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_14">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>487</y>
-      <width>97</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>DCLK Wait (MCLK)</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_15">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>522</y>
-      <width>92</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Hardware Trigger</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_16">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>557</y>
-      <width>115</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>CLK_CFG (High) (Low)</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="ConvLowInt">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>67</y>
-      <width>132</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="ConvHighInt">
-    <property name="geometry">
-     <rect>
-      <x>154</x>
-      <y>102</y>
-      <width>132</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="ConvConfig">
-    <property name="geometry">
-     <rect>
-      <x>141</x>
-      <y>137</y>
-      <width>80</width>
-      <height>24</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="MCLKFreq">
-    <property name="geometry">
-     <rect>
-      <x>168</x>
-      <y>172</y>
-      <width>132</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="CLKHigh">
-    <property name="geometry">
-     <rect>
-      <x>163</x>
-      <y>207</y>
-      <width>132</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="CLKLow">
-    <property name="geometry">
-     <rect>
-      <x>301</x>
-      <y>207</y>
-      <width>132</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="DDCCLKConfig">
-    <property name="geometry">
-     <rect>
-      <x>161</x>
-      <y>242</y>
-      <width>80</width>
-      <height>24</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="Format">
-    <property name="geometry">
-     <rect>
-      <x>113</x>
-      <y>277</y>
-      <width>80</width>
-      <height>24</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="ChannelCount">
-    <property name="geometry">
-     <rect>
-      <x>154</x>
-      <y>312</y>
-      <width>80</width>
-      <height>24</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="nDVALIDIgnore">
-    <property name="geometry">
-     <rect>
-      <x>160</x>
-      <y>347</y>
-      <width>132</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="nDVALIDRead">
-    <property name="geometry">
-     <rect>
-      <x>126</x>
-      <y>382</y>
-      <width>132</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="DCLKHigh">
-    <property name="geometry">
-     <rect>
-      <x>146</x>
-      <y>417</y>
-      <width>132</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="DCLKLow">
-    <property name="geometry">
-     <rect>
-      <x>284</x>
-      <y>417</y>
-      <width>132</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="DCLKConfig">
-    <property name="geometry">
-     <rect>
-      <x>142</x>
-      <y>452</y>
-      <width>80</width>
-      <height>24</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="DCLKWait">
-    <property name="geometry">
-     <rect>
-      <x>172</x>
-      <y>487</y>
-      <width>132</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="HardwareTrigger">
-    <property name="geometry">
-     <rect>
-      <x>167</x>
-      <y>522</y>
-      <width>80</width>
-      <height>24</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="CLK_CFGHigh">
-    <property name="geometry">
-     <rect>
-      <x>190</x>
-      <y>557</y>
-      <width>132</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="CLK_CFGLow">
-    <property name="geometry">
-     <rect>
-      <x>328</x>
-      <y>557</y>
-      <width>132</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="getData">
-    <property name="geometry">
-     <rect>
-      <x>191</x>
-      <y>592</y>
-      <width>75</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Get data</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="conv_low_int_text">
-    <property name="geometry">
-     <rect>
-      <x>288</x>
-      <y>67</y>
-      <width>53</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>us = 1600</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="conv_high_int_text">
-    <property name="geometry">
-     <rect>
-      <x>292</x>
-      <y>102</y>
-      <width>53</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>us = 1600</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="ADCrange">
-    <property name="geometry">
-     <rect>
-      <x>543</x>
-      <y>46</y>
-      <width>80</width>
-      <height>24</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_17">
-    <property name="geometry">
-     <rect>
-      <x>542</x>
-      <y>23</y>
-      <width>58</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>ADC range</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_18">
-    <property name="geometry">
-     <rect>
-      <x>629</x>
-      <y>46</y>
-      <width>16</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>pC</string>
-    </property>
-   </widget>
-   <widget class="QProgressBar" name="progressBar">
-    <property name="geometry">
-     <rect>
-      <x>272</x>
-      <y>592</y>
-      <width>94</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="value">
-     <number>24</number>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="nFiles">
-    <property name="geometry">
-     <rect>
-      <x>53</x>
-      <y>593</y>
-      <width>132</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_20">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>592</y>
-      <width>24</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Files</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="traceNumber">
-    <property name="geometry">
-     <rect>
-      <x>584</x>
-      <y>474</y>
-      <width>80</width>
-      <height>24</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="readFileButton">
-    <property name="geometry">
-     <rect>
-      <x>503</x>
-      <y>474</y>
-      <width>75</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>File Path</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="filePath">
-    <property name="geometry">
-     <rect>
-      <x>502</x>
-      <y>505</y>
-      <width>44</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>file path</string>
-    </property>
-   </widget>
-   <widget class="QWidget" name="tracePlot" native="true">
-    <property name="geometry">
-     <rect>
-      <x>470</x>
-      <y>130</y>
-      <width>331</width>
-      <height>321</height>
-     </rect>
-    </property>
-   </widget>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0" rowspan="2">
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>FPGA registers</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>CONV Low Int</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="ConvLowInt"/>
+        </item>
+        <item>
+         <widget class="QLabel" name="conv_low_int_text">
+          <property name="text">
+           <string>us = 1600</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>CONV High Int</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="ConvHighInt"/>
+        </item>
+        <item>
+         <widget class="QLabel" name="conv_high_int_text">
+          <property name="text">
+           <string>us = 1600</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Conv Config</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="ConvConfig"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>MCLK Freq [MHz]</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="MCLKFreq"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>CLK (High) (Low)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="CLKHigh"/>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="CLKLow"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <item>
+         <widget class="QLabel" name="label_7">
+          <property name="text">
+           <string>DDC CLK Config</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="DDCCLKConfig"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_8">
+        <item>
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>Format</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="Format"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_9">
+        <item>
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Channel Count</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="ChannelCount"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_10">
+        <item>
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>nDVALID Ignore</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="nDVALIDIgnore"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_11">
+        <item>
+         <widget class="QLabel" name="label_11">
+          <property name="text">
+           <string>nDVALID Read</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="nDVALIDRead"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_12">
+        <item>
+         <widget class="QLabel" name="label_13">
+          <property name="text">
+           <string>DCLK (High) (Low)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="DCLKHigh"/>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="DCLKLow"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_13">
+        <item>
+         <widget class="QLabel" name="label_12">
+          <property name="text">
+           <string>DCLK Config</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="DCLKConfig"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_14">
+        <item>
+         <widget class="QLabel" name="label_14">
+          <property name="text">
+           <string>DCLK Wait (MCLK)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="DCLKWait"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_15">
+        <item>
+         <widget class="QLabel" name="label_15">
+          <property name="text">
+           <string>Hardware Trigger</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="HardwareTrigger"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_16">
+        <item>
+         <widget class="QLabel" name="label_16">
+          <property name="text">
+           <string>CLK_CFG (High) (Low)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="CLK_CFGHigh"/>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="CLK_CFGLow"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_17">
+        <item>
+         <widget class="QLabel" name="label_20">
+          <property name="text">
+           <string>Files</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="nFiles"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="getData">
+          <property name="text">
+           <string>Get data</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QProgressBar" name="progressBar">
+          <property name="value">
+           <number>24</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item row="0" column="1">
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="label_17">
+          <property name="text">
+           <string>ADC range</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="ADCrange"/>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_18">
+          <property name="text">
+           <string>pC</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QWidget" name="tracePlot" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>200</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>151</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_18">
+          <item>
+           <widget class="QPushButton" name="readFileButton">
+            <property name="text">
+             <string>File Path</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="traceNumber"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QLabel" name="readFilePath">
+          <property name="text">
+           <string>file path</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item row="1" column="1">
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item>
+       <widget class="QWidget" name="imagePlot" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_19">
+          <item>
+           <widget class="QPushButton" name="decoderMatrix">
+            <property name="text">
+             <string>File Path</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="decoderMatrixLabel">
+            <property name="text">
+             <string>decoder matrix</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="useNormalization">
+            <property name="text">
+             <string>Normilize</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_20">
+          <item>
+           <widget class="QPushButton" name="imageFile">
+            <property name="text">
+             <string>File Path</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="imageFileLabel">
+            <property name="text">
+             <string>image file</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="useThreshold">
+            <property name="text">
+             <string>Clean Image</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_21">
+          <item>
+           <widget class="QPushButton" name="openBeamFile">
+            <property name="text">
+             <string>File Path</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="openBeamFileLabel">
+            <property name="text">
+             <string>open beam file</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="buildImage">
+            <property name="text">
+             <string>Build image</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>848</width>
+     <width>934</width>
      <height>33</height>
     </rect>
    </property>

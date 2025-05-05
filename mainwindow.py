@@ -109,16 +109,45 @@ class Ui(QMainWindow):
         self.graphWidget.setLabel("bottom", "Time")
         self.graphWidget.setMouseEnabled(x=False, y=False)
 
+        self.imageWidget = pg.GraphicsLayoutWidget()
+        layout = QVBoxLayout(self.imagePlot)
+        layout.addWidget(self.imageWidget)
+
+        self.image_file = ""
+        self.open_beam_file = ""
+        self.decoder_matrix = np.arange(1, 257).reshape(16, 16)
+
+        self.image_view = self.imageWidget.addViewBox()
+        self.image_view.setAspectLocked(False)
+        self.img_item = pg.ImageItem(np.zeros((16, 16)))
+        self.image_view.addItem(self.img_item)
+        self.image_view.setRange(self.img_item.boundingRect(), padding=0)
+        self.image_view.setMouseEnabled(x=False, y=False)
+
+        cmap = pg.colormap.get('viridis')
+        lut = cmap.getLookupTable(0.0, 1.0, 256)
+        self.img_item.setLookupTable(lut)
+
+        self.color_bar = pg.ColorBarItem(values=(0, 1), colorMap=cmap, interactive=False)
+
+        self.color_bar.setImageItem(self.img_item)
+
+        self.imageWidget.addItem(self.color_bar)
+
         self.file_data = {}
-        self.filePath.setText("")
+        self.readFilePath.setText("")
 
         self.fpga = None
 
         self.getData.clicked.connect(self.record_data)
         self.ConvLowInt.textChanged.connect(self.update_time)
         self.ConvHighInt.textChanged.connect(self.update_time)
-        self.readFileButton.clicked.connect(self.load_file)
+        self.readFileButton.clicked.connect(self.load_trace_file)
         self.traceNumber.currentTextChanged.connect(self.plot_trace)
+        self.imageFile.clicked.connect(lambda: self.load_file("image_file", self.imageFileLabel))
+        self.openBeamFile.clicked.connect(lambda: self.load_file("open_beam_file", self.openBeamFileLabel))
+        self.decoderMatrix.clicked.connect(self.load_decoder_matrix)
+        self.buildImage.clicked.connect(self.build_image)
 
         self.show()
 
@@ -192,7 +221,7 @@ class Ui(QMainWindow):
             except ValueError:
                 self.statusBar().showMessage("Invalid number of files")
 
-    def load_file(self):
+    def load_trace_file(self):
         options = QFileDialog.Options()
         file_path, _ = QFileDialog.getOpenFileName(
             self,
@@ -203,7 +232,7 @@ class Ui(QMainWindow):
         )
         if file_path:
             try:
-                self.filePath.setText(file_path.split("/")[-1])
+                self.readFilePath.setText(file_path.split("/")[-1])
                 with open(file_path) as f:
                     lines = f.readlines()
                     for line in lines:
@@ -252,3 +281,86 @@ class Ui(QMainWindow):
                     symbolSize=10,
                     symbolBrush=color,
                 )
+           
+    def load_file(self, attribute_name, label):
+        options = QFileDialog.Options()
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select File",
+            "",
+            "Text Files (*.txt);;All Files (*)",
+            options=options,
+        )
+        self.update_registers()
+        if file_path:
+            try:
+                self.update_registers()
+                setattr(self, attribute_name, file_path)
+                label.setText(file_path.split("/")[-1])
+            except ValueError:
+                self.statusBar().showMessage("Invalid file")
+        
+    def process_file(self, file_path):
+        self.update_registers()
+        if file_path:
+            with open(file_path) as f:
+                peaks = {}
+                for i, line in enumerate(f.readlines()):
+                    if line.split(",")[0] not in peaks:
+                        peaks[line.split(",")[0]] = [self.fpga.convert_adc(float(line.split(",")[2]))]
+                    else:
+                        peaks[line.split(",")[0]].append(self.fpga.convert_adc(float(line.split(",")[2])))
+                for key, value in peaks.items():
+                    peaks[key] = np.abs(np.mean(value[:100])-np.mean(value[400:]))
+                    
+                array = np.zeros((16, 16))
+                for i in range(16):
+                    for j in range(16):
+                        if self.decoder_matrix[i,j]>=10:
+                            array[i, j] = peaks[f'{self.decoder_matrix[i,j]}A']+peaks[f'{self.decoder_matrix[i,j]}B']
+                        else:
+                            array[i, j] = peaks[f'0{self.decoder_matrix[i,j]}A']+peaks[f'0{self.decoder_matrix[i,j]}B']
+                return array
+        else:
+            return np.zeros((16, 16))
+
+    def load_decoder_matrix(self):
+        options = QFileDialog.Options()
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select File",
+            "",
+            "Text Files (*.txt);;All Files (*)",
+            options=options,
+        )
+        if file_path:
+            try:
+                with open(file_path) as f:
+                    lines = f.readlines()
+                    for i, line in enumerate(lines):
+                        self.decoder_matrix[i, :] = list(map(int, line.split()))
+                self.decoderMatrixLabel.setText(file_path.split("/")[-1])
+            except ValueError:
+                self.statusBar().showMessage("Invalid file")
+
+    def build_image(self):
+        if self.useNormalization.isChecked():
+            if (not self.image_file) or (not self.open_beam_file):
+                self.statusBar().showMessage("Please select both image and open beam files")
+            else:
+                final_image = self.process_file(self.image_file)/self.process_file(self.open_beam_file)
+                if self.useThreshold.isChecked():
+                    final_image[final_image > 1] = 1
+                
+                self.img_item.setImage(final_image)
+                self.img_item.setLevels((final_image.min(), final_image.max()))
+                self.color_bar.setLevels((final_image.min(), final_image.max()))
+        else:
+            if not self.image_file:
+                self.statusBar().showMessage("Please select image file")
+            else:
+                final_image = self.process_file(self.image_file)
+                self.img_item.setImage(final_image)
+                self.img_item.setLevels((final_image.min(), final_image.max()))
+                self.color_bar.setLevels((final_image.min(), final_image.max()))
+                
