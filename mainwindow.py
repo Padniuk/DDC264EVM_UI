@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QMainWindow, QFileDialog, QVBoxLayout
 from tools import FPGAControl
 import pyqtgraph as pg
 import numpy as np
+import os
 
 
 class ReaderWorker(QObject):
@@ -19,8 +20,20 @@ class ReaderWorker(QObject):
 
     @pyqtSlot()
     def run(self):
+        existing_indices = []
+        if os.path.isdir(self.folder_path):
+            for fname in os.listdir(self.folder_path):
+                if fname.startswith("file_") and fname.endswith(".txt"):
+                    try:
+                        idx = int(fname[5:-4])
+                        existing_indices.append(idx)
+                    except ValueError:
+                        continue
+        start_index = max(existing_indices) if existing_indices else 0
+
         for i in range(self.numFiles):
-            result = self.fpga.get_data(self.folder_path, i)
+            file_index = start_index + i + 1
+            result = self.fpga.get_data(self.folder_path, file_index - 1)
             self.status.emit(result)
             self.progress.emit(i + 1)
         self.status.emit("Data read successfully")
@@ -51,6 +64,8 @@ class Ui(QMainWindow):
 
         self.CLKHigh.setText("7")
         self.CLKLow.setText("7")
+        self.CLKHigh.setDisabled(True)
+        self.CLKLow.setDisabled(True)
 
         self.DDCCLKConfig.addItem("Running")
         self.DDCCLKConfig.addItem("Low")

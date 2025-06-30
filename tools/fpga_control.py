@@ -215,7 +215,7 @@ class FPGAControl:
         )
 
         if res_data_capture:
-            return f"Can't capture data from FPG in file {filename}"
+            return f"Can't capture data from FPGA in file {filename}"
 
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
