@@ -156,8 +156,8 @@ class FPGAControl:
         self.set_reg_in(0x54, self.CONV_WAIT_HIGH)
         self.set_reg_in(0xEB, self.CLKDELAY_AROUND_CONV)
 
-    def get_data(self, folder_path, file_index):
-        filename = f"{folder_path}/file_{file_index+1}.txt"
+    def get_data(self, file_path, file_index):
+        filename = f"{file_path}_{file_index+1}.txt"
 
         hDLL = ctypes.WinDLL("USB_IO_for_VB6.dll")
         WriteFPGARegsC = self.WriteFPGARegsC_type(("WriteFPGARegsC", hDLL))

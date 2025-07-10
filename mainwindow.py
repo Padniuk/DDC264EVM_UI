@@ -12,10 +12,11 @@ class ReaderWorker(QObject):
     progress = pyqtSignal(int)
     status = pyqtSignal(str)
 
-    def __init__(self, fpga, folder_path, numFiles):
+    def __init__(self, fpga, folder_path, file_name, numFiles):
         super().__init__()
         self.fpga = fpga
         self.folder_path = folder_path
+        self.file_name = file_name
         self.numFiles = numFiles
         self.readFilePath = None
 
@@ -24,7 +25,7 @@ class ReaderWorker(QObject):
         existing_indices = []
         if os.path.isdir(self.folder_path):
             for fname in os.listdir(self.folder_path):
-                if fname.startswith("file_") and fname.endswith(".txt"):
+                if fname.startswith(f"{self.file_name}_") and fname.endswith(".txt"):
                     try:
                         idx = int(fname[5:-4])
                         existing_indices.append(idx)
@@ -34,12 +35,14 @@ class ReaderWorker(QObject):
 
         for i in range(self.numFiles):
             file_index = start_index + i + 1
-            result = self.fpga.get_data(self.folder_path, file_index - 1)
+            result = self.fpga.get_data(
+                f"{self.folder_path}\\{self.file_name}", file_index - 1
+            )
             self.status.emit(result)
             self.progress.emit(i + 1)
         self.status.emit("Data read successfully")
         self.finished.emit()
-        self.readFilePath = f"file_{start_index + self.numFiles}.txt"
+        self.readFilePath = f"{self.file_name}_{start_index + self.numFiles}.txt"
 
 
 class Ui(QMainWindow):
@@ -118,6 +121,16 @@ class Ui(QMainWindow):
 
         self.nFiles.setText("1")
 
+        public_documents = os.path.join(
+            os.environ.get("PUBLIC", r"C:\Users\Public"), "Documents"
+        )
+        if os.path.isdir(public_documents):
+            self.saveFolderLabel.setText(public_documents)
+        else:
+            self.saveFolderLabel.setText(
+                os.path.join(os.path.expanduser("~"), "Documents")
+            )
+
         self.traceNumber.addItem("--")
         self.traceNumber.addItem("Mean value")
         for letter in ["A", "B"]:
@@ -170,6 +183,11 @@ class Ui(QMainWindow):
         self.readFileButton.clicked.connect(self.load_trace_file)
         self.traceNumber.currentTextChanged.connect(self.plot_trace)
         self.writeRegisters.clicked.connect(self.update_registers)
+        self.saveFolder.clicked.connect(
+            lambda: self.saveFolderLabel.setText(
+                QFileDialog.getExistingDirectory(self, "Select Folder")
+            )
+        )
         self.imageFile.clicked.connect(
             lambda: self.load_file("image_file", self.imageFileLabel)
         )
@@ -226,18 +244,16 @@ class Ui(QMainWindow):
                 numFiles = int(self.nFiles.text())
                 if numFiles <= 0:
                     raise ValueError
-                options = QFileDialog.Options()
-                folder_path = QFileDialog.getExistingDirectory(
-                    self, "Select Folder", options=options
-                )
-
+                folder_path = self.saveFolderLabel.text()
                 if folder_path:
                     self.progressBar.setMaximum(numFiles)
                     self.progressBar.setValue(0)
                     self.progressBar.show()
-
+                    file_name = self.saveFileName.text() or "file"
                     self.thread = QThread()
-                    self.worker = ReaderWorker(self.fpga, folder_path, numFiles)
+                    self.worker = ReaderWorker(
+                        self.fpga, folder_path, file_name, numFiles
+                    )
                     self.worker.moveToThread(self.thread)
 
                     self.thread.started.connect(self.worker.run)
