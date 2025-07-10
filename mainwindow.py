@@ -133,7 +133,9 @@ class Ui(QMainWindow):
 
         self.image_file = ""
         self.open_beam_file = ""
-        self.decoder_matrix = np.arange(1, 257).reshape(16, 16)
+        self.decoderMatrixLabel.setText("decoder_matrix.txt")
+        self.decoder_matrix = np.zeros((16, 16), dtype=int)
+        self.load_decoder_matrix(self.decoderMatrixLabel.text())
 
         self.image_view = self.imageWidget.addViewBox()
         self.image_view.setAspectLocked(False)
@@ -383,24 +385,24 @@ class Ui(QMainWindow):
         else:
             return np.zeros((16, 16))
 
-    def load_decoder_matrix(self):
-        options = QFileDialog.Options()
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Select File",
-            "",
-            "Text Files (*.txt);;All Files (*)",
-            options=options,
-        )
-        if file_path:
-            try:
-                with open(file_path) as f:
-                    lines = f.readlines()
-                    for i, line in enumerate(lines):
-                        self.decoder_matrix[i, :] = list(map(int, line.split()))
-                self.decoderMatrixLabel.setText(file_path.split("/")[-1])
-            except ValueError:
-                self.statusBar().showMessage("Invalid file")
+    def load_decoder_matrix(self, file_path=None):
+        if not file_path:
+            options = QFileDialog.Options()
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "Select File",
+                "",
+                "Text Files (*.txt);;All Files (*)",
+                options=options,
+            )
+        try:
+            with open(file_path) as f:
+                lines = f.readlines()
+                for i, line in enumerate(lines):
+                    self.decoder_matrix[i, :] = list(map(int, line.split()))
+            self.decoderMatrixLabel.setText(file_path.split("/")[-1])
+        except ValueError:
+            self.statusBar().showMessage("Invalid file")
 
     def build_image(self):
         if self.useNormalization.isChecked():
