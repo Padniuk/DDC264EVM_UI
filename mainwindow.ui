@@ -288,7 +288,7 @@
      </layout>
     </item>
     <item row="0" column="1">
-     <layout class="QVBoxLayout" name="verticalLayout_4">
+     <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
@@ -318,24 +318,12 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>200</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>151</height>
-         </size>
-        </property>
        </widget>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <layout class="QVBoxLayout" name="verticalLayout_6">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_18">
+         <layout class="QHBoxLayout" name="horizontalLayout_23">
           <item>
            <widget class="QPushButton" name="readFileButton">
             <property name="text">
@@ -361,6 +349,16 @@
     </item>
     <item row="1" column="1">
      <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_22">
+        <item>
+         <widget class="QLineEdit" name="edgeLeft"/>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="edgeRight"/>
+        </item>
+       </layout>
+      </item>
       <item>
        <widget class="QWidget" name="imagePlot" native="true">
         <property name="sizePolicy">

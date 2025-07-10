@@ -108,6 +108,9 @@ class Ui(QMainWindow):
         self.ADCrange.addItem("50.0")
         self.ADCrange.addItem("12.5")
 
+        self.edgeLeft.setText("156")
+        self.edgeRight.setText("356")
+
         self.progressBar.setMinimum(0)
         self.progressBar.setValue(0)
 
@@ -365,8 +368,21 @@ class Ui(QMainWindow):
                         peaks[line.split(",")[0]].append(
                             self.fpga.convert_adc(float(line.split(",")[2]))
                         )
-                for key, value in peaks.items():
-                    peaks[key] = np.abs(np.mean(value[:100]) - np.mean(value[400:]))
+                try:
+                    if (
+                        int(self.edgeLeft.text()) < 0
+                        or int(self.edgeRight.text()) > 512
+                        or int(self.edgeLeft.text()) >= int(self.edgeRight.text())
+                    ):
+                        raise ValueError
+                    for key, value in peaks.items():
+                        peaks[key] = np.abs(
+                            np.mean(value[: int(self.edgeLeft.text())])
+                            - np.mean(value[int(self.edgeRight.text()) :])
+                        )
+                except ValueError:
+                    self.statusBar().showMessage("Invalid edge values")
+                    return np.zeros((16, 16))
 
                 array = np.zeros((16, 16))
                 for i in range(16):
@@ -418,13 +434,21 @@ class Ui(QMainWindow):
                     final_image[final_image > 1] = 1
 
                 self.img_item.setImage(final_image)
-                self.img_item.setLevels((final_image.min(), final_image.max()))
-                self.color_bar.setLevels((final_image.min(), final_image.max()))
+                if np.isnan(final_image.min()) or np.isnan(final_image.max()):
+                    self.img_item.setLevels((0, 1))
+                    self.color_bar.setLevels((0, 1))
+                else:
+                    self.img_item.setLevels((final_image.min(), final_image.max()))
+                    self.color_bar.setLevels((final_image.min(), final_image.max()))
         else:
             if not self.image_file:
                 self.statusBar().showMessage("Please select image file")
             else:
                 final_image = self.process_file(self.image_file)
                 self.img_item.setImage(final_image)
-                self.img_item.setLevels((final_image.min(), final_image.max()))
-                self.color_bar.setLevels((final_image.min(), final_image.max()))
+                if np.isnan(final_image.min()) or np.isnan(final_image.max()):
+                    self.img_item.setLevels((0, 1))
+                    self.color_bar.setLevels((0, 1))
+                else:
+                    self.img_item.setLevels((final_image.min(), final_image.max()))
+                    self.color_bar.setLevels((final_image.min(), final_image.max()))
