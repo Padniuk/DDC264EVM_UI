@@ -162,13 +162,14 @@ class Ui(QMainWindow):
         self.file_data = {}
         self.readFilePath.setText("")
 
-        self.fpga = None
+        self.update_registers()
 
         self.getData.clicked.connect(self.record_data)
         self.ConvLowInt.textChanged.connect(self.update_time)
         self.ConvHighInt.textChanged.connect(self.update_time)
         self.readFileButton.clicked.connect(self.load_trace_file)
         self.traceNumber.currentTextChanged.connect(self.plot_trace)
+        self.writeRegisters.clicked.connect(self.update_registers)
         self.imageFile.clicked.connect(
             lambda: self.load_file("image_file", self.imageFileLabel)
         )
@@ -220,7 +221,6 @@ class Ui(QMainWindow):
             self.statusBar().showMessage("Invalid input")
 
     def record_data(self):
-        self.update_registers()
         if self.fpga:
             try:
                 numFiles = int(self.nFiles.text())
@@ -270,6 +270,8 @@ class Ui(QMainWindow):
 
             except ValueError:
                 self.statusBar().showMessage("Invalid number of files")
+        else:
+            self.statusBar().showMessage("Please update registers first")
 
     def load_trace_file(self, file_path=None):
         self.file_data = {}
@@ -305,8 +307,6 @@ class Ui(QMainWindow):
             self.graphWidget.clear()
             trace = self.traceNumber.currentText()
             if not (trace == "--"):
-                if not self.fpga:
-                    self.update_registers()
 
                 if trace == "Mean value":
                     x = list(range(512))
@@ -345,17 +345,13 @@ class Ui(QMainWindow):
                 "Text Files (*.txt);;All Files (*)",
                 options=options,
             )
-
-        self.update_registers()
         try:
-            self.update_registers()
             setattr(self, attribute_name, file_path)
             label.setText(file_path.split("/")[-1])
         except ValueError:
             self.statusBar().showMessage("Invalid file")
 
     def process_file(self, file_path):
-        self.update_registers()
         if file_path:
             with open(file_path) as f:
                 peaks = {}
