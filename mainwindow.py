@@ -17,6 +17,7 @@ class ReaderWorker(QObject):
         self.fpga = fpga
         self.folder_path = folder_path
         self.numFiles = numFiles
+        self.readFilePath = None
 
     @pyqtSlot()
     def run(self):
@@ -38,7 +39,9 @@ class ReaderWorker(QObject):
             self.progress.emit(i + 1)
         self.status.emit("Data read successfully")
         self.finished.emit()
-        
+        self.readFilePath = f"file_{start_index + self.numFiles}.txt"
+
+
 class Ui(QMainWindow):
     conv_config = {"Free run": 0, "Low": 2, "High": 3}
     ddc_clk_config = {"Running": 1, "Low": 0}
@@ -139,11 +142,13 @@ class Ui(QMainWindow):
         self.image_view.setRange(self.img_item.boundingRect(), padding=0)
         self.image_view.setMouseEnabled(x=False, y=False)
 
-        cmap = pg.colormap.get('viridis')
+        cmap = pg.colormap.get("viridis")
         lut = cmap.getLookupTable(0.0, 1.0, 256)
         self.img_item.setLookupTable(lut)
 
-        self.color_bar = pg.ColorBarItem(values=(0, 1), colorMap=cmap, interactive=False)
+        self.color_bar = pg.ColorBarItem(
+            values=(0, 1), colorMap=cmap, interactive=False
+        )
 
         self.color_bar.setImageItem(self.img_item)
 
@@ -159,8 +164,12 @@ class Ui(QMainWindow):
         self.ConvHighInt.textChanged.connect(self.update_time)
         self.readFileButton.clicked.connect(self.load_trace_file)
         self.traceNumber.currentTextChanged.connect(self.plot_trace)
-        self.imageFile.clicked.connect(lambda: self.load_file("image_file", self.imageFileLabel))
-        self.openBeamFile.clicked.connect(lambda: self.load_file("open_beam_file", self.openBeamFileLabel))
+        self.imageFile.clicked.connect(
+            lambda: self.load_file("image_file", self.imageFileLabel)
+        )
+        self.openBeamFile.clicked.connect(
+            lambda: self.load_file("open_beam_file", self.openBeamFileLabel)
+        )
         self.decoderMatrix.clicked.connect(self.load_decoder_matrix)
         self.buildImage.clicked.connect(self.build_image)
 
@@ -212,55 +221,79 @@ class Ui(QMainWindow):
                 numFiles = int(self.nFiles.text())
                 if numFiles <= 0:
                     raise ValueError
-                self.progressBar.setMaximum(numFiles)
-                self.progressBar.setValue(0)
-                self.progressBar.show()
                 options = QFileDialog.Options()
                 folder_path = QFileDialog.getExistingDirectory(
                     self, "Select Folder", options=options
                 )
 
-                self.thread = QThread()
-                self.worker = ReaderWorker(self.fpga, folder_path, numFiles)
-                self.worker.moveToThread(self.thread)
+                if folder_path:
+                    self.progressBar.setMaximum(numFiles)
+                    self.progressBar.setValue(0)
+                    self.progressBar.show()
 
-                self.thread.started.connect(self.worker.run)
-                self.worker.progress.connect(self.progressBar.setValue)
-                self.worker.status.connect(self.statusBar().showMessage)
-                self.worker.finished.connect(self.thread.quit)
-                self.worker.finished.connect(self.worker.deleteLater)
-                self.thread.finished.connect(self.thread.deleteLater)
-                self.thread.finished.connect(self.progressBar.hide)    
-                self.thread.start()
+                    self.thread = QThread()
+                    self.worker = ReaderWorker(self.fpga, folder_path, numFiles)
+                    self.worker.moveToThread(self.thread)
+
+                    self.thread.started.connect(self.worker.run)
+                    self.worker.progress.connect(self.progressBar.setValue)
+                    self.worker.status.connect(self.statusBar().showMessage)
+                    self.worker.finished.connect(self.thread.quit)
+                    self.worker.finished.connect(self.worker.deleteLater)
+                    self.worker.finished.connect(
+                        lambda: self.readFilePath.setText(self.worker.readFilePath)
+                    )
+                    self.worker.finished.connect(
+                        lambda: self.load_trace_file(
+                            f"{folder_path}/{self.readFilePath.text()}"
+                        )
+                    )
+
+                    self.worker.finished.connect(
+                        lambda: self.load_file(
+                            "image_file",
+                            self.imageFileLabel,
+                            f"{folder_path}/{self.readFilePath.text()}",
+                        )
+                    )
+                    self.worker.finished.connect(self.build_image)
+
+                    self.worker.finished.connect(self.build_image)
+                    self.thread.finished.connect(self.thread.deleteLater)
+                    self.thread.finished.connect(self.progressBar.hide)
+                    self.thread.start()
 
             except ValueError:
                 self.statusBar().showMessage("Invalid number of files")
 
-    def load_trace_file(self):
-        options = QFileDialog.Options()
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Select File",
-            "",
-            "Text Files (*.txt);;All Files (*)",
-            options=options,
-        )
-        if file_path:
-            try:
-                self.readFilePath.setText(file_path.split("/")[-1])
-                with open(file_path) as f:
-                    lines = f.readlines()
-                    for line in lines:
-                        if line.split(",")[0] not in self.file_data:
-                            self.file_data[line.split(",")[0]] = [
-                                float(line.split(",")[2])
-                            ]
-                        else:
-                            self.file_data[line.split(",")[0]].append(
-                                float(line.split(",")[2])
-                            )
-            except ValueError:
-                self.statusBar().showMessage("Invalid file")
+    def load_trace_file(self, file_path=None):
+        self.file_data = {}
+        if not file_path:
+            options = QFileDialog.Options()
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "Select File",
+                "",
+                "Text Files (*.txt);;All Files (*)",
+                options=options,
+            )
+
+        try:
+            self.readFilePath.setText(file_path.split("/")[-1])
+            with open(file_path) as f:
+                lines = f.readlines()
+                for line in lines:
+                    if line.split(",")[0] not in self.file_data:
+                        self.file_data[line.split(",")[0]] = [float(line.split(",")[2])]
+                    else:
+                        self.file_data[line.split(",")[0]].append(
+                            float(line.split(",")[2])
+                        )
+            if self.traceNumber.currentText() == "--":
+                self.traceNumber.setCurrentText("Mean value")
+            self.plot_trace()
+        except ValueError:
+            self.statusBar().showMessage("Invalid file")
 
     def plot_trace(self):
         if not len(self.file_data) == 0:
@@ -279,14 +312,14 @@ class Ui(QMainWindow):
                         self.fpga.convert_adc(np.mean(self.file_data[key]))
                         for key in sorted_keys
                     ]
-                    color = 'r'
+                    color = "r"
                 else:
                     prefix = "0" if int(trace[:-1]) < 10 else ""
                     x = list(range(512))
                     y = self.fpga.convert_adc(
                         np.array(self.file_data[f"{prefix}{trace}"])
                     )
-                    color = 'b'
+                    color = "b"
 
                 self.graphWidget.plot(
                     x,
@@ -296,25 +329,26 @@ class Ui(QMainWindow):
                     symbolSize=10,
                     symbolBrush=color,
                 )
-           
-    def load_file(self, attribute_name, label):
-        options = QFileDialog.Options()
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Select File",
-            "",
-            "Text Files (*.txt);;All Files (*)",
-            options=options,
-        )
+
+    def load_file(self, attribute_name, label, file_path=None):
+        if not file_path:
+            options = QFileDialog.Options()
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "Select File",
+                "",
+                "Text Files (*.txt);;All Files (*)",
+                options=options,
+            )
+
         self.update_registers()
-        if file_path:
-            try:
-                self.update_registers()
-                setattr(self, attribute_name, file_path)
-                label.setText(file_path.split("/")[-1])
-            except ValueError:
-                self.statusBar().showMessage("Invalid file")
-        
+        try:
+            self.update_registers()
+            setattr(self, attribute_name, file_path)
+            label.setText(file_path.split("/")[-1])
+        except ValueError:
+            self.statusBar().showMessage("Invalid file")
+
     def process_file(self, file_path):
         self.update_registers()
         if file_path:
@@ -322,19 +356,29 @@ class Ui(QMainWindow):
                 peaks = {}
                 for i, line in enumerate(f.readlines()):
                     if line.split(",")[0] not in peaks:
-                        peaks[line.split(",")[0]] = [self.fpga.convert_adc(float(line.split(",")[2]))]
+                        peaks[line.split(",")[0]] = [
+                            self.fpga.convert_adc(float(line.split(",")[2]))
+                        ]
                     else:
-                        peaks[line.split(",")[0]].append(self.fpga.convert_adc(float(line.split(",")[2])))
+                        peaks[line.split(",")[0]].append(
+                            self.fpga.convert_adc(float(line.split(",")[2]))
+                        )
                 for key, value in peaks.items():
-                    peaks[key] = np.abs(np.mean(value[:100])-np.mean(value[400:]))
-                    
+                    peaks[key] = np.abs(np.mean(value[:100]) - np.mean(value[400:]))
+
                 array = np.zeros((16, 16))
                 for i in range(16):
                     for j in range(16):
-                        if self.decoder_matrix[i,j]>=10:
-                            array[i, j] = peaks[f'{self.decoder_matrix[i,j]}A']+peaks[f'{self.decoder_matrix[i,j]}B']
+                        if self.decoder_matrix[i, j] >= 10:
+                            array[i, j] = (
+                                peaks[f"{self.decoder_matrix[i,j]}A"]
+                                + peaks[f"{self.decoder_matrix[i,j]}B"]
+                            )
                         else:
-                            array[i, j] = peaks[f'0{self.decoder_matrix[i,j]}A']+peaks[f'0{self.decoder_matrix[i,j]}B']
+                            array[i, j] = (
+                                peaks[f"0{self.decoder_matrix[i,j]}A"]
+                                + peaks[f"0{self.decoder_matrix[i,j]}B"]
+                            )
                 return array
         else:
             return np.zeros((16, 16))
@@ -361,12 +405,16 @@ class Ui(QMainWindow):
     def build_image(self):
         if self.useNormalization.isChecked():
             if (not self.image_file) or (not self.open_beam_file):
-                self.statusBar().showMessage("Please select both image and open beam files")
+                self.statusBar().showMessage(
+                    "Please select both image and open beam files"
+                )
             else:
-                final_image = self.process_file(self.image_file)/self.process_file(self.open_beam_file)
+                final_image = self.process_file(self.image_file) / self.process_file(
+                    self.open_beam_file
+                )
                 if self.useThreshold.isChecked():
                     final_image[final_image > 1] = 1
-                
+
                 self.img_item.setImage(final_image)
                 self.img_item.setLevels((final_image.min(), final_image.max()))
                 self.color_bar.setLevels((final_image.min(), final_image.max()))
@@ -378,4 +426,3 @@ class Ui(QMainWindow):
                 self.img_item.setImage(final_image)
                 self.img_item.setLevels((final_image.min(), final_image.max()))
                 self.color_bar.setLevels((final_image.min(), final_image.max()))
-                
