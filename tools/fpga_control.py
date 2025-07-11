@@ -224,9 +224,9 @@ class FPGAControl:
                 for c in range(Channels, 0, -1):
                     for s in range(Samples):
                         prefix = "0" if c < 10 else ""
-                        shift = 0 if type_ == "A" else 256
+                        shift = 0 if type_ == "A" else Channels
                         dataFile.write(
-                            f"{prefix}{c}{type_}, {0}, {AllData[s*Channels+c+shift]}, {0}, {0}, {next(k for k, v in self.bit_rates.items() if v == self.DDCbit8)}\n"
+                            f"{prefix}{c}{type_}, {0}, {AllData[2*s*Channels+c-1+shift]}, {0}, {0}, {next(k for k, v in self.bit_rates.items() if v == self.DDCbit8)}\n"
                         )
 
         return f"File {filename} was saved successfully"

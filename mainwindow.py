@@ -224,6 +224,7 @@ class Ui(QMainWindow):
                 self.ADCrange.currentText(),
                 int(self.Format.currentText()[:-4]),
             )
+            self.statusBar().showMessage("Registers updated successfully")
         except ValueError:
             self.statusBar().showMessage("Invalid input")
 
@@ -388,10 +389,9 @@ class Ui(QMainWindow):
                     ):
                         raise ValueError
                     for key, value in peaks.items():
-                        peaks[key] = np.abs(
-                            np.mean(value[: int(self.edgeLeft.text())])
-                            - np.mean(value[int(self.edgeRight.text()) :])
-                        )
+                        peaks[key] = np.mean(
+                            value[int(self.edgeRight.text()) :]
+                        ) - np.mean(value[: int(self.edgeLeft.text())])
                 except ValueError:
                     self.statusBar().showMessage("Invalid edge values")
                     return np.zeros((16, 16))
@@ -400,15 +400,11 @@ class Ui(QMainWindow):
                 for i in range(16):
                     for j in range(16):
                         if self.decoder_matrix[i, j] >= 10:
-                            array[i, j] = (
-                                peaks[f"{self.decoder_matrix[i,j]}A"]
-                                + peaks[f"{self.decoder_matrix[i,j]}B"]
-                            )
+                            array[i, j] = peaks[f"{self.decoder_matrix[i,j]}A"]
                         else:
-                            array[i, j] = (
-                                peaks[f"0{self.decoder_matrix[i,j]}A"]
-                                + peaks[f"0{self.decoder_matrix[i,j]}B"]
-                            )
+                            array[i, j] = peaks[f"0{self.decoder_matrix[i,j]}A"]
+                array = np.fliplr(array)
+
                 return array
         else:
             return np.zeros((16, 16))
