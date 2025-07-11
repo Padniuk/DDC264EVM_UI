@@ -58,8 +58,8 @@ class Ui(QMainWindow):
 
         self.setWindowTitle("DDC264EVM_UI")
 
-        self.ConvLowInt.setText("320")
-        self.ConvHighInt.setText("320")
+        self.ConvLowInt.setText("10000")
+        self.ConvHighInt.setText("10000")
 
         self.ConvConfig.addItem("Free run")
         self.ConvConfig.addItem("Low")
@@ -301,6 +301,8 @@ class Ui(QMainWindow):
                 "Text Files (*.txt);;All Files (*)",
                 options=options,
             )
+            if not file_path:
+                return
 
         try:
             self.readFilePath.setText(file_path.split("/")[-1])
@@ -362,6 +364,8 @@ class Ui(QMainWindow):
                 "Text Files (*.txt);;All Files (*)",
                 options=options,
             )
+            if not file_path:
+                return
         try:
             setattr(self, attribute_name, file_path)
             label.setText(file_path.split("/")[-1])
@@ -419,6 +423,8 @@ class Ui(QMainWindow):
                 "Text Files (*.txt);;All Files (*)",
                 options=options,
             )
+            if not file_path:
+                return
         try:
             with open(file_path) as f:
                 lines = f.readlines()
