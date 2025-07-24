@@ -70,8 +70,6 @@ class Ui(QMainWindow):
 
         self.CLKHigh.setText("7")
         self.CLKLow.setText("7")
-        self.CLKHigh.setDisabled(True)
-        self.CLKLow.setDisabled(True)
 
         self.DDCCLKConfig.addItem("Running")
         self.DDCCLKConfig.addItem("Low")
@@ -328,6 +326,7 @@ class Ui(QMainWindow):
             if not (trace == "--"):
 
                 if trace == "Mean value":
+                    self.graphWidget.setLabel("bottom", "Channel")
                     x = list(range(512))
                     sorted_keys = sorted(
                         self.file_data.keys(), key=lambda x: (x[-1], int(x[:-1]))
@@ -338,6 +337,7 @@ class Ui(QMainWindow):
                     ]
                     color = "r"
                 else:
+                    self.graphWidget.setLabel("bottom", "Time")
                     prefix = "0" if int(trace[:-1]) < 10 else ""
                     x = list(range(512))
                     y = self.fpga.convert_adc(
@@ -407,6 +407,8 @@ class Ui(QMainWindow):
                             array[i, j] = peaks[f"{self.decoder_matrix[i,j]}A"]
                         else:
                             array[i, j] = peaks[f"0{self.decoder_matrix[i,j]}A"]
+                array = np.rot90(array)
+                array = np.flipud(array)
                 array = np.fliplr(array)
 
                 return array
