@@ -27,7 +27,7 @@ class ReaderWorker(QObject):
             for fname in os.listdir(self.folder_path):
                 if fname.startswith(f"{self.file_name}_") and fname.endswith(".txt"):
                     try:
-                        idx = int(fname[5:-4])
+                        idx = int(fname[len(f"{self.file_name}_") : -4])
                         existing_indices.append(idx)
                     except ValueError:
                         continue
