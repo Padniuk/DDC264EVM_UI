@@ -119,6 +119,13 @@ class Ui(QMainWindow):
 
         self.nFiles.setText("1")
 
+        self.pixelX.setText("0.36")
+        self.pixelY.setText("0.36")
+        self.imageLowScale.setText("0")
+        self.imageUpperScale.setText("1")
+        self.mixLowScale.setText("0")
+        self.mixUpperScale.setText("1")
+
         public_documents = os.path.join(
             os.environ.get("PUBLIC", r"C:\Users\Public"), "Documents"
         )
@@ -142,8 +149,12 @@ class Ui(QMainWindow):
         self.graphWidget.setMouseEnabled(x=False, y=False)
 
         self.imageWidget = pg.GraphicsLayoutWidget()
-        layout = QVBoxLayout(self.imagePlot)
-        layout.addWidget(self.imageWidget)
+        image_layout = QVBoxLayout(self.imagePlot)
+        image_layout.addWidget(self.imageWidget)
+
+        self.mixWidget = pg.GraphicsLayoutWidget()
+        mix_layout = QVBoxLayout(self.mixPlot)
+        mix_layout.addWidget(self.mixWidget)
 
         self.image_file = ""
         self.open_beam_file = ""
@@ -165,13 +176,30 @@ class Ui(QMainWindow):
         self.color_bar = pg.ColorBarItem(
             values=(0, 1), colorMap=cmap, interactive=False
         )
-
         self.color_bar.setImageItem(self.img_item)
-
         self.imageWidget.addItem(self.color_bar)
 
+        self.mix_view = self.mixWidget.addViewBox()
+        self.mix_view.setAspectLocked(False)
+        self.mix_img_item = pg.ImageItem(np.zeros((16, 16)))
+        self.mix_view.addItem(self.mix_img_item)
+        self.mix_view.setRange(self.mix_img_item.boundingRect(), padding=0)
+        self.mix_view.setMouseEnabled(x=False, y=False)
+        self.mix_img_item.setLookupTable(lut)
+        self.mix_color_bar = pg.ColorBarItem(
+            values=(0, 1), colorMap=cmap, interactive=False
+        )
+        self.mix_color_bar.setImageItem(self.mix_img_item)
+        self.mixWidget.addItem(self.mix_color_bar)
+
         self.file_data = {}
+        self.image_data = np.zeros((16, 16))
+        self.dark_current_data = np.zeros((16, 16))
+        self.open_beam_data = np.zeros((16, 16))
         self.readFilePath.setText("")
+
+        self.openBeam.setChecked(False)
+        self.darkCurrent.setChecked(True)
 
         self.update_registers()
 
@@ -187,13 +215,25 @@ class Ui(QMainWindow):
             )
         )
         self.imageFile.clicked.connect(
-            lambda: self.load_file("image_file", self.imageFileLabel)
+            lambda: self.load_file(
+                "image_file", self.imageFileLabel, "image_data", True
+            )
         )
         self.openBeamFile.clicked.connect(
-            lambda: self.load_file("open_beam_file", self.openBeamFileLabel)
+            lambda: self.load_file(
+                "open_beam_file", self.openBeamFileLabel, "open_beam_data", False
+            )
         )
         self.decoderMatrix.clicked.connect(self.load_decoder_matrix)
         self.buildImage.clicked.connect(self.build_image)
+        self.imageUpperScale.textChanged.connect(self.change_scales)
+        self.imageLowScale.textChanged.connect(self.change_scales)
+        self.mixUpperScale.textChanged.connect(self.change_scales)
+        self.mixLowScale.textChanged.connect(self.change_scales)
+        self.darkCurrent.toggled.connect(self.build_image)
+        self.openBeam.toggled.connect(self.build_image)
+        self.openBeam.clicked.connect(self.build_image)
+        self.darkCurrent.clicked.connect(self.build_image)
 
         self.show()
 
@@ -219,6 +259,9 @@ class Ui(QMainWindow):
                 int(self.DCLKLow.text()),
                 self.dclk_config[self.DCLKConfig.currentText()],
                 int(self.DCLKWait.text()),
+                self.hardware_trigger[self.HardwareTrigger.currentText()],
+                int(self.CLK_CFGHigh.text()),
+                int(self.CLK_CFGLow.text()),
                 self.ADCrange.currentText(),
                 int(self.Format.currentText()[:-4]),
             )
@@ -273,6 +316,8 @@ class Ui(QMainWindow):
                         lambda: self.load_file(
                             "image_file",
                             self.imageFileLabel,
+                            "image_data",
+                            True,
                             f"{folder_path}/{self.readFilePath.text()}",
                         )
                     )
@@ -354,7 +399,9 @@ class Ui(QMainWindow):
                     symbolBrush=color,
                 )
 
-    def load_file(self, attribute_name, label, file_path=None):
+    def load_file(
+        self, file_name_attr, label, data_attr, update_dark=False, file_path=None
+    ):
         if not file_path:
             options = QFileDialog.Options()
             file_path, _ = QFileDialog.getOpenFileName(
@@ -367,13 +414,7 @@ class Ui(QMainWindow):
             if not file_path:
                 return
         try:
-            setattr(self, attribute_name, file_path)
-            label.setText(file_path.split("/")[-1])
-        except ValueError:
-            self.statusBar().showMessage("Invalid file")
-
-    def process_file(self, file_path):
-        if file_path:
+            setattr(self, file_name_attr, file_path)
             with open(file_path) as f:
                 peaks = {}
                 for i, line in enumerate(f.readlines()):
@@ -393,27 +434,35 @@ class Ui(QMainWindow):
                     ):
                         raise ValueError
                     for key, value in peaks.items():
-                        peaks[key] = np.mean(
-                            value[int(self.edgeRight.text()) :]
-                        ) - np.mean(value[: int(self.edgeLeft.text())])
+                        right_mean = np.mean(value[int(self.edgeRight.text()) :])
+                        left_mean = np.mean(value[: int(self.edgeLeft.text())])
+                        peaks[key] = (right_mean - left_mean, left_mean)
                 except ValueError:
                     self.statusBar().showMessage("Invalid edge values")
                     return np.zeros((16, 16))
 
-                array = np.zeros((16, 16))
+                array_image = np.zeros((16, 16))
+                array_dark = np.zeros((16, 16))
                 for i in range(16):
                     for j in range(16):
                         if self.decoder_matrix[i, j] >= 10:
-                            array[i, j] = peaks[f"{self.decoder_matrix[i,j]}A"]
+                            array_image[i, j] = peaks[f"{self.decoder_matrix[i,j]}A"][0]
+                            array_dark[i, j] = peaks[f"{self.decoder_matrix[i,j]}A"][1]
                         else:
-                            array[i, j] = peaks[f"0{self.decoder_matrix[i,j]}A"]
-                array = np.rot90(array)
-                array = np.flipud(array)
-                array = np.fliplr(array)
+                            array_image[i, j] = peaks[f"0{self.decoder_matrix[i,j]}A"][
+                                0
+                            ]
+                            array_dark[i, j] = peaks[f"0{self.decoder_matrix[i,j]}A"][1]
+                array_image = np.rot90(array_image, 3)
+                array_dark = np.rot90(array_dark, 3)
 
-                return array
-        else:
-            return np.zeros((16, 16))
+                setattr(self, data_attr, array_image)
+                if update_dark:
+                    setattr(self, "dark_current_data", array_dark)
+
+            label.setText(file_path.split("/")[-1])
+        except ValueError:
+            self.statusBar().showMessage("Invalid file")
 
     def load_decoder_matrix(self, file_path=None):
         if not file_path:
@@ -443,28 +492,92 @@ class Ui(QMainWindow):
                     "Please select both image and open beam files"
                 )
             else:
-                final_image = self.process_file(self.image_file) / self.process_file(
-                    self.open_beam_file
-                )
-                if self.useThreshold.isChecked():
-                    final_image[final_image > 1] = 1
+                left_image = self.image_data / self.open_beam_data
 
-                self.img_item.setImage(final_image)
-                if np.isnan(final_image.min()) or np.isnan(final_image.max()):
+                if self.useThreshold.isChecked():
+                    left_image[left_image > 1] = 1
+
+                self.img_item.setImage(left_image)
+                if np.isnan(left_image.min()) or np.isnan(left_image.max()):
                     self.img_item.setLevels((0, 1))
                     self.color_bar.setLevels((0, 1))
+                    self.imageUpperScale.setText("1")
+                    self.imageLowScale.setText("0")
                 else:
-                    self.img_item.setLevels((final_image.min(), final_image.max()))
-                    self.color_bar.setLevels((final_image.min(), final_image.max()))
+                    self.img_item.setLevels((left_image.min(), left_image.max()))
+                    self.color_bar.setLevels((left_image.min(), left_image.max()))
+                self.imageUpperScale.setText(f"{left_image.max()}")
+                self.imageLowScale.setText(f"{left_image.min()}")
         else:
             if not self.image_file:
                 self.statusBar().showMessage("Please select image file")
             else:
-                final_image = self.process_file(self.image_file)
-                self.img_item.setImage(final_image)
-                if np.isnan(final_image.min()) or np.isnan(final_image.max()):
+                left_image = self.image_data/float(self.pixelX.text())/float(self.pixelY.text())/float(self.ConvLowInt.text())*1e12
+                self.img_item.setImage(left_image)
+                if np.isnan(left_image.min()) or np.isnan(left_image.max()):
                     self.img_item.setLevels((0, 1))
                     self.color_bar.setLevels((0, 1))
+                    self.imageUpperScale.setText("1")
+                    self.imageLowScale.setText("0")
                 else:
-                    self.img_item.setLevels((final_image.min(), final_image.max()))
-                    self.color_bar.setLevels((final_image.min(), final_image.max()))
+                    self.img_item.setLevels((left_image.min(), left_image.max()))
+                    self.color_bar.setLevels((left_image.min(), left_image.max()))
+                    self.imageUpperScale.setText(f"{left_image.max()}")
+                    self.imageLowScale.setText(f"{left_image.min()}")
+
+        if self.darkCurrent.isChecked():
+            if not self.image_file:
+                self.statusBar().showMessage("Please select image file")
+            else:
+                right_image = self.dark_current_data/float(self.pixelX.text())/float(self.pixelY.text())/float(self.ConvLowInt.text())*1e12
+                self.mix_img_item.setImage(right_image)
+                if np.isnan(right_image.min()) or np.isnan(right_image.max()):
+                    self.mix_img_item.setLevels((0, 1))
+                    self.mix_color_bar.setLevels((0, 1))
+                    self.mixUpperScale.setText("1")
+                    self.mixLowScale.setText("0")
+                else:
+                    self.mix_img_item.setLevels((right_image.min(), right_image.max()))
+                    self.mix_color_bar.setLevels((right_image.min(), right_image.max()))
+                    self.mixUpperScale.setText(f"{right_image.max()}")
+                    self.mixLowScale.setText(f"{right_image.min()}")
+
+        if self.openBeam.isChecked():
+            if not self.open_beam_file:
+                self.statusBar().showMessage("Please select open beam file")
+            else:
+                right_image = self.open_beam_data/float(self.pixelX.text())/float(self.pixelY.text())/float(self.ConvLowInt.text())*1e12
+                self.mix_img_item.setImage(right_image)
+                if np.isnan(right_image.min()) or np.isnan(right_image.max()):
+                    self.mix_img_item.setLevels((0, 1))
+                    self.mix_color_bar.setLevels((0, 1))
+                    self.mixUpperScale.setText("1")
+                    self.mixLowScale.setText("0")
+                else:
+                    self.mix_img_item.setLevels((right_image.min(), right_image.max()))
+                    self.mix_color_bar.setLevels((right_image.min(), right_image.max()))
+                    self.mixUpperScale.setText(f"{right_image.max()}")
+                    self.mixLowScale.setText(f"{right_image.min()}")
+
+    def change_scales(self):
+        if self.imageUpperScale.text() and self.imageLowScale.text():
+            try:
+                self.img_item.setLevels(
+                    (float(self.imageLowScale.text()), float(self.imageUpperScale.text()))
+                )
+                self.color_bar.setLevels(
+                    (float(self.imageLowScale.text()), float(self.imageUpperScale.text()))
+                )
+            except ValueError:
+                self.statusBar().showMessage("Invalid left scale values")
+
+        if self.mixUpperScale.text() and self.mixLowScale.text():
+            try:
+                self.mix_img_item.setLevels(
+                    (float(self.mixLowScale.text()), float(self.mixUpperScale.text()))
+                )
+                self.mix_color_bar.setLevels(
+                    (float(self.mixLowScale.text()), float(self.mixUpperScale.text()))
+                )
+            except ValueError:
+                self.statusBar().showMessage("Invalid right scale values")

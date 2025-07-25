@@ -6,6 +6,20 @@ import os
 class FPGAControl:
     adc_ranges = {"12.5": (0, 0), "50.0": (0, 1), "100.0": (1, 0), "150.0": (1, 1)}
     bit_rates = {10: 0, 20: 1}
+    channel_count_map = {
+        1: 0,
+        2: 1,
+        4: 2,
+        8: 3,
+        16: 4,
+        32: 5,
+        64: 6,
+        128: 7,
+        256: 8,
+        512: 9,
+        1024: 10,
+        0: 11,
+    }
 
     int16_t = ctypes.c_int16
     int32_t = ctypes.c_int32
@@ -64,6 +78,9 @@ class FPGAControl:
         DCLK_LOW,
         DCLK_CONFIG,
         DCLKWait,
+        HARDWARE_TRIGGER,
+        CLK_CFG_HI,
+        CLK_CFG_LO,
         ADC_RANGE,
         BIT_RATE,
     ):
@@ -81,20 +98,21 @@ class FPGAControl:
         self.DCLK_LOW = DCLK_LOW
         self.DCLK_CONFIG = DCLK_CONFIG
         self.DCLK_WAIT_MCLK = DCLKWait
-        self.CLK_CFG_HI = 3
-        self.CLK_CFG_LO = 3
+        self.HADWARE_TRIGGER = HARDWARE_TRIGGER
+        self.CLK_CFG_HI = CLK_CFG_HI
+        self.CLK_CFG_LO = CLK_CFG_LO
         self.CONV_WAIT_LOW = 1550
         self.CONV_WAIT_HIGH = 1550
         self.CLKDELAY_AROUND_CONV = 0
 
-        self.DDCbit13 = 0  # CLKDIV
+        self.DDCbit13 = 0
         self.DDCbit10 = self.adc_ranges[ADC_RANGE][0]
         self.DDCbit9 = self.adc_ranges[ADC_RANGE][1]
         self.DDCbit8 = self.bit_rates[BIT_RATE]
 
-        self.DDCbit7 = 0  # SPEED
-        self.DDCbit4 = 0  # SLEW
-        self.DDCbit0 = 0  # TEST
+        self.DDCbit7 = 0
+        self.DDCbit4 = 0
+        self.DDCbit0 = 0
 
         self.CFGLOW = (self.DDCbit7 << 7) + (self.DDCbit4 << 4) + self.DDCbit0
         self.CFGHIGH = (
@@ -117,8 +135,7 @@ class FPGAControl:
         self.RegsEnable[reg] = 1
 
     def set_regs(self):
-        channel_value = min(8, int(math.log2(self.CHANNEL_COUNT)))
-
+        channel_value = self.channel_count_map[self.CHANNEL_COUNT]
         self.set_reg_in(0x01, (self.CONV_LOW_INT - 1) >> 16)
         self.set_reg_in(0x02, (self.CONV_LOW_INT - 1) >> 8)
         self.set_reg_in(0x03, (self.CONV_LOW_INT - 1))
