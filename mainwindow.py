@@ -58,8 +58,8 @@ class Ui(QMainWindow):
 
         self.setWindowTitle("DDC264EVM_UI")
 
-        self.ConvLowInt.setText("10000")
-        self.ConvHighInt.setText("10000")
+        self.ConvLowInt.setText("320")
+        self.ConvHighInt.setText("320")
 
         self.ConvConfig.addItem("Free run")
         self.ConvConfig.addItem("Low")
@@ -68,8 +68,8 @@ class Ui(QMainWindow):
         self.MCLKFreq.setText("80.0")
         self.MCLKFreq.setDisabled(True)
 
-        self.CLKHigh.setText("7")
-        self.CLKLow.setText("7")
+        self.CLKHigh.setText("3")
+        self.CLKLow.setText("3")
 
         self.DDCCLKConfig.addItem("Running")
         self.DDCCLKConfig.addItem("Low")
@@ -96,7 +96,7 @@ class Ui(QMainWindow):
         self.DCLKConfig.addItem("Running")
         self.DCLKConfig.addItem("Low")
 
-        self.DCLKWait.setText("13000")
+        self.DCLKWait.setText("1750")
 
         self.HardwareTrigger.addItem("Disabled")
         self.HardwareTrigger.addItem("Enabled")
@@ -104,6 +104,7 @@ class Ui(QMainWindow):
         self.CLK_CFGHigh.setText("3")
         self.CLK_CFGLow.setText("3")
 
+        self.ADCrange.addItem("12.5")
         self.ADCrange.addItem("150.0")
         self.ADCrange.addItem("100.0")
         self.ADCrange.addItem("50.0")

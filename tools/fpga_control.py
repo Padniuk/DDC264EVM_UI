@@ -181,8 +181,8 @@ class FPGAControl:
         WriteFPGARegsC = self.WriteFPGARegsC_type(("WriteFPGARegsC", hDLL))
         FastAllDataCap = self.FastAllDataCap_type(("FastAllDataCap", hDLL))
 
-        self.reset_regs()
-        self.set_regs()
+        # self.reset_regs()
+        # self.set_regs()
 
         USBdev = self.int16_t(0)
         DUTSelect = self.int32_t(0)
