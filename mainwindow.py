@@ -209,11 +209,7 @@ class Ui(QMainWindow):
         self.readFileButton.clicked.connect(self.load_trace_file)
         self.traceNumber.currentTextChanged.connect(self.plot_trace)
         self.writeRegisters.clicked.connect(self.update_registers)
-        self.saveFolder.clicked.connect(
-            lambda: self.saveFolderLabel.setText(
-                QFileDialog.getExistingDirectory(self, "Select Folder")
-            )
-        )
+        self.saveFolder.clicked.connect(lambda: self.save_folder_path())
         self.imageFile.clicked.connect(
             lambda: self.load_file(
                 "image_file", self.imageFileLabel, "image_data", True
@@ -236,6 +232,18 @@ class Ui(QMainWindow):
         self.darkCurrent.clicked.connect(self.build_image)
 
         self.show()
+
+    def save_folder_path(self, max_length=40):
+        path = QFileDialog.getExistingDirectory(self, "Select Folder")
+        if len(path) > max_length:
+            half = max_length // 2
+            start = path[:half]
+            end = path[-half:]
+            display_text = f"{start}...{end}"
+        else:
+            display_text = path
+        self.saveFolderLabel.setText(display_text)
+        self.saveFolderLabel.setToolTip(path)
 
     def update_registers(self):
         try:
