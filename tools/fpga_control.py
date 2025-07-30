@@ -176,7 +176,8 @@ class FPGAControl:
     def get_data(self, file_path, file_index):
         filename = f"{file_path}_{file_index+1}.txt"
 
-        hDLL = ctypes.WinDLL("USB_IO_for_VB6.dll")
+        dll_path = os.path.join(os.getcwd(), "USB_IO_for_VB6.dll")
+        hDLL = ctypes.WinDLL(dll_path)
         WriteFPGARegsC = self.WriteFPGARegsC_type(("WriteFPGARegsC", hDLL))
         FastAllDataCap = self.FastAllDataCap_type(("FastAllDataCap", hDLL))
 

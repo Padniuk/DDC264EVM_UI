@@ -512,7 +512,13 @@ class Ui(QMainWindow):
             if not self.image_file:
                 self.statusBar().showMessage("Please select image file")
             else:
-                left_image = self.image_data/float(self.pixelX.text())/float(self.pixelY.text())/float(self.ConvLowInt.text())*1e15
+                left_image = (
+                    self.image_data
+                    / float(self.pixelX.text())
+                    / float(self.pixelY.text())
+                    / float(self.ConvLowInt.text())
+                    * 1e15
+                )
                 self.img_item.setImage(left_image)
                 if np.isnan(left_image.min()) or np.isnan(left_image.max()):
                     self.img_item.setLevels((0, 1))
@@ -529,7 +535,13 @@ class Ui(QMainWindow):
             if not self.image_file:
                 self.statusBar().showMessage("Please select image file")
             else:
-                right_image = self.dark_current_data/float(self.pixelX.text())/float(self.pixelY.text())/float(self.ConvLowInt.text())*1e15
+                right_image = (
+                    self.dark_current_data
+                    / float(self.pixelX.text())
+                    / float(self.pixelY.text())
+                    / float(self.ConvLowInt.text())
+                    * 1e15
+                )
                 self.mix_img_item.setImage(right_image)
                 if np.isnan(right_image.min()) or np.isnan(right_image.max()):
                     self.mix_img_item.setLevels((0, 1))
@@ -546,7 +558,13 @@ class Ui(QMainWindow):
             if not self.open_beam_file:
                 self.statusBar().showMessage("Please select open beam file")
             else:
-                right_image = self.open_beam_data/float(self.pixelX.text())/float(self.pixelY.text())/float(self.ConvLowInt.text())*1e15
+                right_image = (
+                    self.open_beam_data
+                    / float(self.pixelX.text())
+                    / float(self.pixelY.text())
+                    / float(self.ConvLowInt.text())
+                    * 1e15
+                )
                 self.mix_img_item.setImage(right_image)
                 if np.isnan(right_image.min()) or np.isnan(right_image.max()):
                     self.mix_img_item.setLevels((0, 1))
@@ -563,10 +581,16 @@ class Ui(QMainWindow):
         if self.imageUpperScale.text() and self.imageLowScale.text():
             try:
                 self.img_item.setLevels(
-                    (float(self.imageLowScale.text()), float(self.imageUpperScale.text()))
+                    (
+                        float(self.imageLowScale.text()),
+                        float(self.imageUpperScale.text()),
+                    )
                 )
                 self.color_bar.setLevels(
-                    (float(self.imageLowScale.text()), float(self.imageUpperScale.text()))
+                    (
+                        float(self.imageLowScale.text()),
+                        float(self.imageUpperScale.text()),
+                    )
                 )
             except ValueError:
                 self.statusBar().showMessage("Invalid left scale values")
